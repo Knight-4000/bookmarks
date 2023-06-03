@@ -16,3 +16,6 @@ function showModal() {
 // Event Listener
 modalShow.addEventListener('click', showModal);
 modalClose.addEventListener('click', () => modal.classList.remove('show-modal'));
+// If click inside modal, nothing happens. If click outside, show-modal class 
+// is removed and the modal disappears. 
+window.addEventListener('click', (e) => (e.target === modal ? modal.classList.remove('show-modal') : false));
