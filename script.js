@@ -6,6 +6,7 @@ const websiteNameEl = document.getElementById('website-name');
 const websiteUrlEl = document.getElementById('website-url');
 const bookmarksContainer = document.getElementById('bookmarks-container');
 
+let bookmarks = [];
 // Show modal and focus on first input
 
 function showModal() {
@@ -36,6 +37,65 @@ function validate(nameValue, urlValue) {
     return true;
 }
 
+// Build bookmarks DOM
+
+function buildBookmarks() {
+  // Build Items
+  bookmarks.forEach((bookmark) => {
+    const { name, url } = bookmark;
+    // Item
+    const item = document.createElement('div');
+    item.classList.add('item');
+    // Close Font Awesome Icon
+    const closeIcon = document.createElement('i');
+    closeIcon.classList.add('fas', 'fa-times');
+    closeIcon.setAttribute('title', 'Delete This Bookmark');
+    closeIcon.setAttribute('onClick', `deleteBookmark('${url}}')`);
+    // Favicon / Link Container
+    const linkInfo = document.createElement('div');
+    linkInfo.classList.add('name');
+    // Favicon
+    const favicon = document.createElement('img');
+    favicon.setAttribute('src', `https://s2.googleusercontent.com/s2/favicons?domain=${url}`);
+    favicon.setAttribute('alt', 'Favicon');
+    // Link
+    const link = document.createElement('a');
+    link.setAttribute('href', `${url}`);
+    link.setAttribute('target', '_blank');
+    link.textContent = name;
+    // Append to bookmarks container
+    linkInfo.append(favicon, link);
+    item.append(closeIcon, linkInfo);
+    bookmarksContainer.appendChild(item);
+  });
+}
+
+// Fetch Bookmarks from localStorage
+
+function fetchBookmarks() {
+  if (localStorage.getItem('bookmarks')) {
+    bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
+  }
+
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks))
+
+  buildBookmarks();
+}
+
+// Delete Bookmark
+function deleteBookmark(url) {
+  // Loop through the bookmarks array
+  bookmarks.forEach((bookmark, i) => {
+    if (bookmark.url === url) {
+      bookmarks.splice(i, 1);
+    }
+  });
+  // Update bookmarks array in localStorage, re-populate DOM
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  fetchBookmarks();
+}
+
+
 // Handle Data from Form
 
 function storeBookmark(e) {
@@ -48,8 +108,20 @@ function storeBookmark(e) {
   if (!validate(nameValue, urlValue)) {
     return false;
   }
+  const bookmark = {
+    name: nameValue,
+    url: urlValue,
+  };
+  bookmarks.push(bookmark);
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  fetchBookmarks();
+  bookMarkForm.reset();
+  websiteNameEl.focus();
 }
 
 // Form Event Listener
 
 bookMarkForm.addEventListener('submit', storeBookmark);
+
+// On load, fetch bookmarks
+fetchBookmarks();
