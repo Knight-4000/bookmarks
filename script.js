@@ -1,56 +1,55 @@
 const modal = document.getElementById('modal');
 const modalShow = document.getElementById('show-modal');
 const modalClose = document.getElementById('close-modal');
-const bookMarkForm = document.getElementById('bookmark-form');
+const bookmarkForm = document.getElementById('bookmark-form');
 const websiteNameEl = document.getElementById('website-name');
 const websiteUrlEl = document.getElementById('website-url');
 const bookmarksContainer = document.getElementById('bookmarks-container');
 
 let bookmarks = [];
-// Show modal and focus on first input
 
+// Show Modal, Focus on Input
 function showModal() {
   modal.classList.add('show-modal');
-    websiteNameEl.focus();
+  websiteNameEl.focus();
 }
 
 // Modal Event Listeners
 modalShow.addEventListener('click', showModal);
 modalClose.addEventListener('click', () => modal.classList.remove('show-modal'));
-// If click inside modal, nothing happens. If click outside, show-modal class 
-// is removed and the modal disappears. 
 window.addEventListener('click', (e) => (e.target === modal ? modal.classList.remove('show-modal') : false));
 
 // Validate Form
-
 function validate(nameValue, urlValue) {
-    const expression = /(https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;    const regex = new RegExp(expression);
-    // If no name value OR no url value 
-    if (!nameValue || !urlValue) {
-        alert('Try entering something in both fields');
-        return false;
-    }
-    if (!urlValue.match(regex)) {
-        alert('Please provide a valid web address');
-        return false;
-    }
-    return true;
+  const expression = /(https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+  const regex = new RegExp(expression);
+  if (!nameValue || !urlValue) {
+    alert('Please submit values for both fields.');
+    return false;
+  }
+  if (!urlValue.match(regex)) {
+    alert('Please provide a valid web address.');
+    return false;
+  }
+  // Valid
+  return true;
 }
 
-// Build bookmarks DOM
-
+// Build Bookmarks
 function buildBookmarks() {
-  // Build Items
+  // Remove all bookmark elements
+  bookmarksContainer.textContent = '';
+  // Build items
   bookmarks.forEach((bookmark) => {
     const { name, url } = bookmark;
     // Item
     const item = document.createElement('div');
     item.classList.add('item');
-    // Close Font Awesome Icon
+    // Close Icon
     const closeIcon = document.createElement('i');
     closeIcon.classList.add('fas', 'fa-times');
-    closeIcon.setAttribute('title', 'Delete This Bookmark');
-    closeIcon.setAttribute('onClick', `deleteBookmark('${url}}')`);
+    closeIcon.setAttribute('title', 'Delete Bookmark');
+    closeIcon.setAttribute('onclick', `deleteBookmark('${url}')`);
     // Favicon / Link Container
     const linkInfo = document.createElement('div');
     linkInfo.classList.add('name');
@@ -67,18 +66,18 @@ function buildBookmarks() {
     linkInfo.append(favicon, link);
     item.append(closeIcon, linkInfo);
     bookmarksContainer.appendChild(item);
+    modal.classList.remove('show-modal');
   });
 }
 
-// Fetch Bookmarks from localStorage
-
+// Fetch bookmarks
 function fetchBookmarks() {
+  // Get bookmarks from localStorage if available
   if (localStorage.getItem('bookmarks')) {
     bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
+  } else {
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
   }
-
-    localStorage.setItem('bookmarks', JSON.stringify(bookmarks))
-
   buildBookmarks();
 }
 
@@ -95,33 +94,33 @@ function deleteBookmark(url) {
   fetchBookmarks();
 }
 
-
-// Handle Data from Form
-
 function storeBookmark(e) {
-    e.preventDefault();
-    const nameValue = websiteNameEl.value;
-    let urlValue = websiteUrlEl.value;
-    if (!urlValue.includes('https://') && !urlValue.includes('http://')) {
-        urlValue = `https://${urlValue}`; 
-   }
+  e.preventDefault();
+  const nameValue = websiteNameEl.value;
+  let urlValue = websiteUrlEl.value;
+  // Add 'https://' if not there
+  if (!urlValue.includes('https://') && !urlValue.includes('http://')) {
+    urlValue = `https://${urlValue}`;
+  }
+  // Validate
   if (!validate(nameValue, urlValue)) {
     return false;
   }
+  // Set bookmark object, add to array
   const bookmark = {
     name: nameValue,
     url: urlValue,
   };
   bookmarks.push(bookmark);
+  // Set bookmarks in localStorage, fetch, reset input fields
   localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
   fetchBookmarks();
-  bookMarkForm.reset();
+  bookmarkForm.reset();
   websiteNameEl.focus();
 }
 
-// Form Event Listener
+// Event Listener
+bookmarkForm.addEventListener('submit', storeBookmark);
 
-bookMarkForm.addEventListener('submit', storeBookmark);
-
-// On load, fetch bookmarks
+// On Load, Fetch Bookmarks
 fetchBookmarks();
